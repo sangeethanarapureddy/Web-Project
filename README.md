@@ -64,3 +64,6 @@ terraform plan
 terraform apply
 # 4. To teardown all the created resources
 terraform destroy
+
+## Monitoring
+-- Enabled monitoring for ec2 instance for cpu utilization
