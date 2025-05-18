@@ -59,6 +59,7 @@ resource "aws_instance" "web" {
   instance_type          = "t2.micro"
   subnet_id              = data.aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
+  monitoring             = true
   user_data              = file("userdata.sh")
 
   tags = {
