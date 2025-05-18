@@ -3,6 +3,9 @@
 
 This project demonstrates how to use Terraform to provision basic AWS infrastructure using the default VPC. The objective is to deploy a web server (Apache/Nginx) on an EC2 instance, with all configurations done via Infrastructure as Code (IaC).
 
+## Prerequisites:
+1. Install terraform
+2. Install aws-cli and configure
 ---
 
 ## 🔧 Technologies Used
@@ -23,8 +26,9 @@ The infrastructure was created using the default VPC to avoid complexity while s
 ### 1. Provider Configuration
 
 - AWS provider configured with default region (e.g., us-east-1)
+## To create default vpc
 - aws ec2 create-default-vpc --region <your_region>
-- To verify the vpc was created
+## To verify the vpc was created
 - aws ec2 describe-vpcs --filters "Name=isDefault,Values=true" --region <your-region>
 
 ### 2. EC2 Instance
@@ -49,7 +53,7 @@ The infrastructure was created using the default VPC to avoid complexity while s
 ### 5. Outputs
 
 - Public IP of the EC2 instance
-- Web URL for quick access
+
 
 ## 📦 How to Deploy
 
@@ -66,4 +70,5 @@ terraform apply
 terraform destroy
 
 ## Monitoring
+
 -- Enabled monitoring for ec2 instance for cpu utilization
