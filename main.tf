@@ -1,53 +1,68 @@
+provider "aws" {
+  region = "us-east-1"
+}
 
-# Create a default vpc 
-data "aws_vpc" "myvpc" {
+# Ensure default VPC exists (use external command if needed)
+data "aws_vpc" "default" {
   default = true
 }
 
-# Create default public subnet
-resource "aws_subnet" "subnet"{
-  vpc_id = data.aws_vpc.myvpc.id
- 
- }
+# Get the availability zones
+data "aws_availability_zones" "available" {}
 
-  resource "aws_security_group" "mysg" {
-    name = "websg"
-    vpc_id = aws_vpc.myvpc.id
-
-    ingress {
-      description      = "HTTP"
-      from_port        = 80
-      to_port          = 80
-      protocol         = "tcp"
-      cidr_blocks      = ["0.0.0.0/0"]
-      
-    }
-
-    ingress {
-      description      = "SSH"
-      from_port        = 22
-      to_port          = 22
-      protocol         = "ssh"
-      cidr_blocks      = ["0.0.0.0/0"]
-      
-    }
-
-    egress {
-      from_port        = 0
-      to_port          = 0
-      protocol         = "-1"
-      cidr_blocks      = ["0.0.0.0/0"]
-
-    }
+# Get the default public subnet in the first AZ
+data "aws_subnet" "public_subnet" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
   }
-  # Creating EC2 Instance
 
-  resource "aws_instance" "web" {
-    ami = "ami-084568db4383264d4 "
-    instance_type = "t2.micro"
-    vpc_security_group_ids = [aws_security_group.mysg.id]
-    subnet_id = aws_subnet.subnet.id
-    user_data = base64encode(file(userdata.sh))
-    
+  filter {
+    name   = "default-for-az"
+    values = ["true"]
   }
- 
+
+  availability_zone = data.aws_availability_zones.available.names[0]
+}
+
+resource "aws_security_group" "web_sg" {
+  name        = "web_sg"
+  description = "Allow HTTP and SSH"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_instance" "web" {
+  ami                    = var.ami_id
+  instance_type          = "t2.micro"
+  subnet_id              = data.aws_subnet.public_subnet.id
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  user_data              = file("userdata.sh")
+
+  tags = {
+    Name = "WebServer"
+  }
+}
+
